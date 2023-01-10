@@ -1,0 +1,51 @@
+.sign-in-container {
+  @apply w-full h-full flex justify-center bg-white
+}
+
+.box-container {
+  @apply w-full max-w-lg h-auto lg:border lg:border-gray-200 mt-12 p-8 py-12;
+}
+
+.form {
+  @apply w-full mt-8;
+}
+
+.form h1 {
+  @apply text-2xl text-stone-900 font-semibold;
+}
+
+.form p {
+  @apply text-stone-400 mt-2 font-light
+}
+
+.form span {
+  @apply text-red-600 mt-4 block;
+}
+
+.form-container {
+  @apply mt-8;
+}
+
+.input-container {
+  @apply relative w-full;
+}
+
+.input-container input {
+  @apply block w-full appearance-none border border-gray-300 bg-transparent px-2.5 pb-2.5 pt-4 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-0;
+}
+
+.input-container label {
+  @apply cursor-auto absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300;
+}
+
+.info-link {
+  @apply underline text-blue-500 font-light;
+}
+
+.keep-connected-container {
+  @apply flex w-full justify-end mt-4;
+}
+
+.button-container {
+  @apply w-full mt-12;
+}
