@@ -1,7 +1,6 @@
 import Head from "next/head";
 
-import { Button } from "../../components/shared/form/button";
-import { Input } from "../../components/shared/form/input";
+import { Button, Input } from "../../components/shared/form";
 
 import styles from '../../styles/pages/SignIn.module.css'
 
