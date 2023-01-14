@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Clock, Spinner } from "phosphor-react";
+import momentTimezone from 'moment'
+import moment from 'moment-timezone'
 
 import Head from "next/head";
 
 import { ClockInCard } from "../components/pages/app/times";
-
-import styles from "../styles/pages/App.module.css";
 import {
   Dialog,
   DialogActions,
@@ -13,18 +13,34 @@ import {
   DialogTitle,
 } from "../components/shared/overlay/modal";
 
+import styles from "../styles/pages/App.module.css";
+
+
 export default function App() {
   const [isOpen, setIsOpen] = useState(false);
   const [isClockingIn, setIsClockingIn] = useState(false);
-  const [hasClockedIn, setHasClockedIn] = useState(false);
+  const [clickedTime, setClickedTime] = useState('')
+
+  const [realTime, setRealTime] = useState() as any;
 
   function handleClockIn() {
     setIsClockingIn(true);
-    setTimeout(() => {
-      setIsClockingIn(false);
-      setHasClockedIn(true);
-    }, 3000);
+    const time = moment().format('HH:mm:ss')
+    setClickedTime(time)
+    setIsClockingIn(false);
   }
+
+  function getTimeInSaoPaulo() {
+    const time = moment().tz("America/Sao_Paulo").format("HH:mm:ss")
+    return time
+  }
+
+  useEffect(() => {
+    setInterval(() => {
+      const time = getTimeInSaoPaulo()
+      setRealTime(time)
+    }, 1000)
+  }, [])
 
   return (
     <>
@@ -73,10 +89,10 @@ export default function App() {
           <DialogPanel>
             <DialogTitle>Cadastrar ponto</DialogTitle>
             <div className="flex flex-col w-full my-6">
-              <span className="text-center text-6xl">20:17:32</span>
+              <span className="text-center text-6xl">{realTime}</span>
             </div>
 
-            {hasClockedIn && (
+            {clickedTime.length > 0 && (
               <div
                 className="flex items-center p-4 mb-4 text-sm text-green-700 border border-green-300 rounded-lg bg-green-50"
                 role="alert"
@@ -96,7 +112,7 @@ export default function App() {
                 </svg>
                 <span className="sr-only">Info</span>
                 <div>
-                  <span className="font-medium text-lg">20:17:32<br /></span> Ponto batido com sucesso! Você já pode fechar este modal.
+                  <span className="font-medium text-lg">{clickedTime}<br /></span> Ponto batido com sucesso! Você já pode fechar este modal.
                 </div>
               </div>
             )}
@@ -112,7 +128,7 @@ export default function App() {
               <button
                 type="button"
                 className="w-full p-4 rounded-full bg-black text-white font-regular flex items-center justify-center disabled:opacity-60"
-                disabled={isClockingIn || hasClockedIn}
+                disabled={isClockingIn || clickedTime.length > 0}
                 onClick={handleClockIn}
               >
                 {isClockingIn ? (
