@@ -1,17 +1,8 @@
 import moment from "moment-timezone";
 
+import { Action, ActionTypes } from ".";
+
 export type State = typeof initialState;
-
-export type Action<T> = {
-  type: string;
-  payload?: T;
-};
-
-enum ActionTypes {
-  CLOCK_IN = "CLOCK_IN",
-  STOP_CLOCK_IN = "STOP_CLOCK_IN",
-  ON_SET_REAL_TIME = "ON_SET_REAL_TIME",
-}
 
 const initialState = {
   isClockingIn: false,
@@ -42,4 +33,4 @@ function timeReducer(state: State, action: Action<string>): State {
   }
 }
 
-export { initialState, timeReducer, ActionTypes };
+export { initialState, timeReducer };

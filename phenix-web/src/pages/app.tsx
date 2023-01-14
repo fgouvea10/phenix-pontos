@@ -10,7 +10,7 @@ import {
   initialState,
   State,
   timeReducer,
-} from "../reducers/times";
+} from "../reducers/times/";
 import { ClockInCard } from "../components/pages/app/times";
 import {
   Dialog,
