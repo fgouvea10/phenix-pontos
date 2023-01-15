@@ -5,6 +5,10 @@ import { AuthLayout, CheckoutLayout, DashboardLayout } from "../layouts";
 
 import "../styles/globals.css";
 
+function NormalLayout(props: any) {
+  return <>{props.children}</>
+}
+
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   let Layout;
@@ -18,6 +22,10 @@ export default function App({ Component, pageProps }: AppProps) {
     case "/checkout":
     case "/checkout/success":
       Layout = CheckoutLayout;
+      break;
+
+    case '/':
+      Layout = NormalLayout
       break;
 
     default:
