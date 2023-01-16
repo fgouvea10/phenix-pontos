@@ -4,8 +4,6 @@ import { useMemo } from "react";
 export function Header() {
   const router = useRouter();
 
-  console.log(router);
-
   const isAdmin = false;
 
   const headerMock = useMemo(
