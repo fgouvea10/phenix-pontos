@@ -13,13 +13,13 @@ export default async function handler(
 
   if (!priceId) return res.status(400).json({ message: "Price not found" });
 
-  const success_url = `${process.env.NEXT_URL}/success`;
-  const cancel_url = `${process.env.NEXT_URL}/cancel`;
+  const success_url = `${process.env.NEXT_PUBLIC_URL}/checkout/success`;
+  const cancel_url = `${process.env.NEXT_PUBLIC_URL}/checkout/cancel`;
 
   const checkoutSession = await stripe.checkout.sessions.create({
     success_url,
     cancel_url,
-    mode: "payment",
+    mode: "subscription",
     line_items: [
       {
         price: priceId,
@@ -29,6 +29,6 @@ export default async function handler(
   });
 
   return res.status(201).json({
-    checkoutUrl: checkoutSession.url,
+    checkoutUrl: checkoutSession.url
   });
 }
