@@ -1,35 +1,38 @@
 import { useRouter } from "next/router";
-import type { GetStaticProps } from "next";
+import type { GetServerSideProps } from "next";
+import type Stripe from "stripe";
+import { setCookie } from "nookies";
 
-import { doc, getDoc } from "firebase/firestore";
-
-import { firestore } from "../lib/firebase";
-import { formatCurrency } from "../utils/format-currency";
+import { stripe } from "../lib/stripe";
 
 interface Plan {
+  id: string;
   name: string;
-  price: number;
+  price: number
 }
 
 interface Props {
-  plans: Plan[];
+  plans: Plan[]
 }
 
 export default function Home({ plans }: Props) {
   const router = useRouter();
 
   function handleSelectPlan(plan: Plan) {
-    localStorage.setItem("phenix:redirect", JSON.stringify(plan));
-    router.push("/checkout");
+    // localStorage.setItem("phenix:redirect", JSON.stringify(plan?.id));
+    setCookie(null, 'phenix:redirect', plan.id, {
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    })
+    router.push(`/checkout?plan=${plan.id}`);
   }
 
   return (
     <div>
       <h1>Planos</h1>
       <ul>
-        {plans.map((plan, index) => (
+        {plans.map(plan => (
           <>
-            <li key={index}>
+            <li key={plan.id}>
               <strong>{plan.name}</strong>
               <br />
               <span>{plan.price}</span>
@@ -47,18 +50,24 @@ export default function Home({ plans }: Props) {
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
-  const plansSnapshot = await getDoc(doc(firestore, "phenix-plans", "plans"));
-  const { plans = [] } = plansSnapshot.data() || {};
+export const getServerSideProps: GetServerSideProps = async () => {
+  const response = await stripe.products.list({
+    expand: ['data.default_price']
+  })
 
-  const plansWithFormatPrice = plans.map(({ name, price }: Plan) => ({
-    name: `Plano ${name}`,
-    price: formatCurrency(price) as string | number,
-  }));
+  const plans = response.data.map(product => {
+    const price = product.default_price as Stripe.Price
+
+    return {
+      id: product.id,
+      name: product.name,
+      price: price.unit_amount ?  price.unit_amount / 100 : 0,
+    }
+  })
 
   return {
     props: {
-      plans: plansWithFormatPrice,
-    },
-  };
-};
+      plans
+    }
+  }
+}
