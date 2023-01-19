@@ -1,5 +1,9 @@
 import { GetServerSideProps } from "next";
 import { useEffect, useState } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button, Input } from "../../components/shared/form";
 import { StepItem, Steps } from "../../components/shared/navigation/steps";
 import { stripe } from "../../lib/stripe";
@@ -11,32 +15,94 @@ interface Props {
 
 const INITIAL_STEP = 1;
 
+const userFormSchema = z.object({
+  name: z.string(),
+  phoneNumber: z.string(),
+  registryCode: z.string(),
+});
+
+const companyFormSchema = z.object({
+  companyName: z.string(),
+  companyPhone: z.string(),
+  companyRegistryCode: z.string(),
+});
+
+type UserFormData = z.infer<typeof userFormSchema>;
+
+type CompanyFormData = z.infer<typeof companyFormSchema>;
+
 function UserDataForm({ data }: any) {
+  const {
+    register,
+    handleSubmit,
+    formState: { isValid },
+  } = useForm<UserFormData>({
+    resolver: zodResolver(userFormSchema),
+  });
+
+  const onSubmit = (data: UserFormData) => {
+    localStorage.setItem("phenix:account-setup", JSON.stringify(data));
+  };
+
   return (
     <div id="userDataForm" className="block">
       <div className="w-full flex items-start gap-8 mt-16">
-        <Input type="text" label="Nome" id="name" />
+        <Input type="text" label="Nome" id="name" {...register("name")} />
         <Input type="email" label="E-mail" id="email" value={data} disabled />
       </div>
       <div className="w-full flex items-start gap-8 mt-8">
-        <Input type="text" label="Telefone de contato" id="phoneNumber" />
-        <Input type="text" label="CPF" id="registryCode" />
+        <Input
+          type="text"
+          label="Telefone de contato"
+          id="phoneNumber"
+          {...register("phoneNumber")}
+        />
+        <Input
+          type="text"
+          label="CPF"
+          id="registryCode"
+          {...register("registryCode")}
+        />
       </div>
+      {!isValid && <p>Todos os campos devem ser preenchidos.</p>}
     </div>
   );
 }
 
-function CompanyDataForm() {
+function CompanyDataForm({ onSubmit }: any) {
+  const {
+    register,
+    formState: { isValid },
+  } = useForm<CompanyFormData>({
+    resolver: zodResolver(companyFormSchema),
+  });
+
   return (
     <div id="companyDataForm" className="hidden opacity-0">
       <div className="w-full flex items-start gap-8 mt-16">
-        <Input type="text" label="Nome da empresa" id="companyName" />
-        <Input type="text" label="CNPJ" id="cnpj" />
+        <Input
+          type="text"
+          label="Nome da empresa"
+          id="companyName"
+          {...register("companyName")}
+        />
       </div>
       <div className="w-full flex items-start gap-8 mt-8">
-        <Input type="text" label="Telefone de contato" id="phoneNumber" />
-        <Input type="text" label="CPF" id="registryCode" />
+        <Input
+          type="text"
+          label="Telefone de contato"
+          id="companyPhone"
+          {...register("companyPhone")}
+        />
+        <Input
+          type="text"
+          label="CNPJ"
+          id="companyRegistryCode"
+          {...register("companyRegistryCode")}
+        />
       </div>
+
+      {!isValid && <p>Todos os campos devem ser preenchidos.</p>}
     </div>
   );
 }
@@ -44,13 +110,9 @@ function CompanyDataForm() {
 export default function CheckoutSuccess({ billingDetails }: Props) {
   const [currentStep, setCurrentStep] = useState(INITIAL_STEP);
   const [isSubmitingData, setIsSubmitingData] = useState(false);
-  const [change, setChange] = useState(false);
-
-  console.log("billing details", billingDetails);
 
   function handleGoToNextStep() {
     setCurrentStep((prev) => prev + 1);
-    setChange(true);
   }
 
   function handleGoToPreviousStep() {
@@ -83,7 +145,6 @@ export default function CheckoutSuccess({ billingDetails }: Props) {
       setTimeout(() => {
         companyDataForm?.classList.add(styles["activeIn"]);
       }, 400);
-      
     });
   }, []);
 
@@ -170,21 +231,38 @@ export const getServerSideProps: GetServerSideProps = async ({
   query,
   params,
 }) => {
+  if (!query.session_id)
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+
   const sessionId = String(query.session_id);
 
-  const session = await stripe.checkout.sessions.retrieve(sessionId, {
-    expand: ["line_items", "line_items.data.price.product"],
-  });
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["line_items", "line_items.data.price.product"],
+    });
 
-  const customerData = session.customer_details;
-  const product = session?.line_items?.data[0];
+    const customerData = session.customer_details;
+    const product = session?.line_items?.data[0];
 
-  return {
-    props: {
-      billingDetails: {
-        customerData,
-        product,
+    return {
+      props: {
+        billingDetails: {
+          customerData,
+          product,
+        },
       },
-    },
-  };
+    };
+  } catch (err) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
 };
