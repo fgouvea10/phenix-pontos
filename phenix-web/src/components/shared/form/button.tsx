@@ -43,7 +43,7 @@ export function Button({
     <button
       type="button"
       disabled={loading}
-      className={clsx('w-full overflow-hidden p-4 text-white font-semibold uppercase flex gap-2 items-center justify-center text-sm hover:opacity-90 transition-opacity bg-stone-900', className)}
+      className={clsx('w-full overflow-hidden p-4 text-white font-semibold uppercase flex gap-2 items-center justify-center text-sm hover:opacity-90 transition-opacity bg-stone-900 disabled:opacity-60', className)}
       {...rest}
     >
       {!!loading ? (
